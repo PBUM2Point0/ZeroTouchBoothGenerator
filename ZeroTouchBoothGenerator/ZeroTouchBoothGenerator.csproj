@@ -57,6 +57,7 @@
     <Compile Include="BoothGen\FloorGenerator.cs" />
     <Compile Include="BoothGen\FloorPlateProperties.cs" />
     <Compile Include="BoothGen\FloorProperties.cs" />
+    <Compile Include="BoothGen\RoofProperties.cs" />
     <Compile Include="DynamoUtils\ByLineInstanceProperties.cs" />
     <Compile Include="DynamoUtils\ByPointInstanceProperties.cs" />
     <Compile Include="FillingSpace\FS_Bins.cs" />
