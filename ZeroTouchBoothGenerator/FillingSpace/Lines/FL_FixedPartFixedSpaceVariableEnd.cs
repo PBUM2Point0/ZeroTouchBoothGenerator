@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ZeroTouchBoothGenerator.FillingSpace.Lines
 {
-    public class FLFixedPartFixedSpaceVariableEnd : IFLAlgorithm
+    public class FL_FixedPartFixedSpaceVariableEnd : IFLAlgorithm
     {
         [IsVisibleInDynamoLibrary(false)]
         public double PartLength { get; set; }
@@ -19,7 +19,7 @@ namespace ZeroTouchBoothGenerator.FillingSpace.Lines
         [IsVisibleInDynamoLibrary(false)]
         public bool EndsWithSpace { get; set; }
 
-        internal FLFixedPartFixedSpaceVariableEnd(
+        internal FL_FixedPartFixedSpaceVariableEnd(
             double partLength,
             double spaceLength,
             bool startWithSpace,
@@ -44,13 +44,13 @@ namespace ZeroTouchBoothGenerator.FillingSpace.Lines
         /// <param name="startWithSpace"></param>
         /// <param name="endsWithSpace"></param>
         /// <returns></returns>
-        public static FLFixedPartFixedSpaceVariableEnd Create(
+        public static FL_FixedPartFixedSpaceVariableEnd Create(
             double partLength,
             double spaceLength,
             bool startWithSpace,
             bool endsWithSpace)
         {
-            return new FLFixedPartFixedSpaceVariableEnd(
+            return new FL_FixedPartFixedSpaceVariableEnd(
                 partLength,
                 spaceLength,
                 startWithSpace,
