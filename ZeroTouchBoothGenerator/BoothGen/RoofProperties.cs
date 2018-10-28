@@ -52,9 +52,9 @@ namespace ZeroTouchBoothGenerator.BoothGen
 
         //Calculated data
         [IsVisibleInDynamoLibrary(false)]
-        public double LengthInSpaceDirection { get { return RoofDirection.X > 0 ? LengthX : LengthY; } }
+        public double LengthInSpaceDirection { get { return RoofDirection.X > 0 ? boothProps.LengthX : boothProps.LengthY; } }
         [IsVisibleInDynamoLibrary(false)]
-        public double BoothLengthAcrossSpaces { get { return RoofDirection.X > 0 ? LengthY : LengthX; } }
+        public double BoothLengthAcrossSpaces { get { return RoofDirection.X > 0 ? boothProps.LengthY : boothProps.LengthX; } }
 
         public static RoofProperties ByData(
             ZeissBoothData boothProps,
