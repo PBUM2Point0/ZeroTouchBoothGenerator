@@ -54,6 +54,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FillingSpace\FS_Bins.cs" />
+    <Compile Include="FillingSpace\FS_Rectangle.cs" />
+    <Compile Include="FillingSpace\FS_Vector3.cs" />
+    <Compile Include="FillingSpace\FS_XYDirection.cs" />
+    <Compile Include="FillingSpace\Lines\FL_FixedPartFixedSpaceVariableEnd.cs" />
+    <Compile Include="FillingSpace\Lines\FL_FixedPartSize_VariableEnding.cs" />
+    <Compile Include="FillingSpace\Lines\FL_FixedPartSize_VariableSpacing.cs" />
+    <Compile Include="FillingSpace\Lines\FL_Line.cs" />
+    <Compile Include="FillingSpace\Lines\FL_FixedPartSize_EndingSameVarSize.cs" />
+    <Compile Include="FillingSpace\Lines\FL_Utils.cs" />
+    <Compile Include="FillingSpace\Lines\IFL_Algorithm.cs" />
+    <Compile Include="FillingSpace\Space\FS_LineFilledSpace.cs" />
+    <Compile Include="FillingSpace\Space\FS_WithLines.cs" />
+    <Compile Include="FillingSpace\Space\IFSAlgorithm.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
