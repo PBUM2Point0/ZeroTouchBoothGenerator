@@ -1,53 +1,33 @@
 ﻿using Autodesk.DesignScript.Geometry;
 using Autodesk.DesignScript.Runtime;
+using DynamoUtils;
 using Revit.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ZeroTouchBoothGenerator.DynamoUtils;
 using ZeroTouchBoothGenerator.FillingSpace;
 using ZeroTouchBoothGenerator.FillingSpace.Lines;
 using ZeroTouchBoothGenerator.FillingSpace.Space;
 
-namespace ZeroTouchBoothGenerator.BoothGen
+namespace BoothGenerator
 {
     public static class FloorGenerator
     {
+        /// <summary>
+        /// Generates all properties needed to create the family types for
+        /// the floor.
+        /// </summary>
+        /// <param name="props">Parameters needed.</param>
+        /// <returns>
+        /// All properties needed to create the family types for
+        /// the floor.
+        /// </returns>
         [MultiReturn(new[] { "points", "familyTypes", "rotation", "lengths", "widths" })]
-        public static Dictionary<string, object> CreateFlakeboardStripes(FlakeboardStripesProperties props)
+        public static Dictionary<string, object> CreateFlakeboardStripesProperties(FlakeboardStripesProperties props)
         {
-            FS_WithLines filler = new FS_WithLines(
-                new FL_FixedPartFixedSpaceVariableEnd(
-                    props.FlakeboardLength,
-                    props.FlakeboardDistanceAlong,
-                    true, true),
-                new FL_FixedPartSize_VariableSpacing(
-                    props.DesiredAccrossFlakeboardDistance,
-                    props.FlakeboardWidth,
-                    false));
-
-            var result = filler.Fill(new FS_LineFilledSpace(
-                    props.FloorData.BoothData.LengthX - 2 * props.FlakeboardDistanceToBounds,
-                    props.FloorData.BoothData.LengthY,
-                    props.FlakeBoardDirection));
-
-            result = RemoveUnevenIndices(result);
-
-            var allLines = new List<FS_Rectangle>();
-            foreach (var line in result)
-            {
-                var filteredLines = RemoveEvenIndices(line);
-                allLines.AddRange(filteredLines);
-            }
-
-            //Add Distance To Bound in AccrossDirection
-            allLines.ForEach(r =>
-            {
-                r.CenterPosition.X += props.FlakeboardDistanceToBounds * props.FlakeBoardDirection.Y;
-                r.CenterPosition.Y += props.FlakeboardDistanceToBounds * props.FlakeBoardDirection.X;
-            });
+            List<FS_Rectangle> allLines = CreateFlakeboardRectangles(props);
 
             var instanceProps = ByPointInstanceProperties.CreateList(
                 allLines.Select(l => l.Length).ToList(),
@@ -56,8 +36,71 @@ namespace ZeroTouchBoothGenerator.BoothGen
                 allLines.Select(l => l.CenterPosition).ToList(),
                 props.FlakeboardRotation);
 
-
             return ByPointInstanceProperties.AsDictionary(instanceProps);
+        }
+
+        /// <summary>
+        /// NOT WORKING YET
+        /// Generates flakeboard stripes objects from the given properties.
+        /// </summary>
+        /// <param name="props">Needed properties.</param>
+        public static List<FamilyInstance> CreateFlakeboardStripesDirectly(FlakeboardStripesProperties props)
+        {
+            List<FS_Rectangle> allLines = CreateFlakeboardRectangles(props);
+            List<FamilyInstance> allInstances = new List<FamilyInstance>();
+
+            foreach (var item in allLines)
+            {
+               allInstances.Add(FamilyHelper.Create(
+                    props.FlakeboardType,
+                    props.FloorData.Level,
+                    Point.ByCoordinates(item.CenterPosition.X, item.CenterPosition.Y, item.CenterPosition.Z),
+                    props.FlakeboardRotation,
+                    item.Length,
+                    item.Width
+                ));
+            }
+
+            return allInstances;
+        }
+
+        private static List<FS_Rectangle> CreateFlakeboardRectangles(FlakeboardStripesProperties props)
+        {
+            FS_WithLines filler = new FS_WithLines(
+                new FL_FixedPartFixedSpaceVariableEnd(
+                    props.FlakeboardLength,
+                    props.FlakeboardDistanceAlong,
+                    false, false),
+                new FL_FixedPartSize_VariableSpacing(
+                    props.DesiredAccrossFlakeboardDistance,
+                    props.FlakeboardWidth,
+                    false));
+
+            var result = filler.Fill(new FS_LineFilledSpace(
+                    props.FloorData.BoothData.LengthX - 2 * props.FlakeboardDistanceToBounds,
+                    props.FloorData.BoothData.LengthY - 2 * props.FlakeboardDistanceToBounds,
+                    props.FlakeBoardDirection));
+
+            //Remove Space Rectangles accross lines
+            result = RemoveUnevenIndices(result);
+
+            //Flatten result list
+            var allLines = new List<FS_Rectangle>();
+            foreach (var line in result)
+            {
+                //Remove space rectangles along lines
+                var filteredLines = RemoveUnevenIndices(line);
+                allLines.AddRange(filteredLines);
+            }
+
+            //Add Distance To Bound in AccrossDirection
+            allLines.ForEach(r =>
+            {
+                r.CenterPosition.X += props.FlakeboardDistanceToBounds;
+                r.CenterPosition.Y += props.FlakeboardDistanceToBounds;
+            });
+
+            return allLines;
         }
 
         private static IEnumerable<T> RemoveEvenIndices<T>(IEnumerable<T> enumerable) => enumerable.Where((val, index) => index % 2 == 1);
@@ -79,12 +122,6 @@ namespace ZeroTouchBoothGenerator.BoothGen
             }
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="props"></param>
-        /// <returns></returns>
         [MultiReturn(new[] { "p1", "p2", "familytype", "level" })]
         public static Dictionary<string, object> CreateBorder(FloorBorderProperties props)
         {
@@ -151,7 +188,9 @@ namespace ZeroTouchBoothGenerator.BoothGen
                 r.CenterPosition.Y += props.DistanceToBorder;
                 r.CenterPosition.X += props.DistanceToBorder;
             });
+            
             var positions = flattendedRectangles.Select(r => r.CenterPosition).ToList();
+            positions.ForEach(p => p.Z += props.ZOffset);
 
 
             var allInstanceProperties = ByPointInstanceProperties.CreateList(
@@ -192,49 +231,47 @@ namespace ZeroTouchBoothGenerator.BoothGen
             //Vorgehen: Erstelle Liste von Listen mit SFRectangles + Typ (Weiß/normal)
             var rectangleTypes = new List<Tuple<List<FS_Rectangle>, FamilyType>>();
             //TODO: Create Rectangles
-            //int i = 0;
-            //foreach (var pos in positions)
-            //{
-            //    if (pos.Item1 == props.WhitePlates)
-            //    {
-            //        var lineGenerator = new FLWithFixedPartSizeAndVariableEnding(props.WhitePlateLength);
-            //        var lengths = lineGenerator.FillLine(new FLLine() { Length = props.Space.Length });
+            int i = 0;
+            foreach (var pos in positions)
+            {
+                if (pos.Item1 == props.WhitePlates)
+                {
+                    var lineGenerator = new FL_FixedPartSize_VariableEnding(props.WhitePlateLength);
+                    var lengths = lineGenerator.FillLine(new FL_Line() { Length = props.Space.Length });
 
-            //        var rectangles = FLUtils.LineLengthsAsRectangles(
-            //            lengths,
-            //            props.WhitePlateWidth,
-            //            props.LineDirection.X > 0 ? FSXYDirection.XDirection : FSXYDirection.YDirection,
-            //            pos.Item2,
-            //            props.BorderThickness);
+                    var rectangles = FL_Utils.LineLengthsAsRectangles(
+                        lengths,
+                        props.WhitePlateWidth,
+                        props.LineDirection.X > 0 ? FS_XYDirection.XDirection : FS_XYDirection.YDirection,
+                        pos.Item2,
+                        props.BorderThickness);
 
-            //        rectangleTypes.Add(new Tuple<List<FSRectangle>, FamilyType>(rectangles.ToList(), props.WhitePlates));
-            //    }
-            //    else
-            //    {
-            //        var spaceGenerator = new FSWithLines(
-            //            new FLWithFixedPartSizeAndVariableEnding(props.NormalPlateLength),
-            //            new FLWithFixedPartSizeAndVariableEnding(props.NormalPlateWidth));
+                    rectangleTypes.Add(new Tuple<List<FS_Rectangle>, FamilyType>(rectangles.ToList(), props.WhitePlates));
+                }
+                else
+                {
+                    var spaceGenerator = new FS_WithLines(
+                        new FL_FixedPartSize_VariableEnding(props.NormalPlateLength),
+                        new FL_FixedPartSize_VariableEnding(props.NormalPlateWidth));
 
-            //        var nextSpaceBegin = positions.Count > i + 1 ? positions[i + 1].Item2 : props.Space.LengthAccrossLines;
-            //        var rectangles = spaceGenerator.Fill(props.Space).SelectMany(l => l).ToList();
+                    //var nextSpaceBegin = positions.Count > (i + 1) ? positions[i + 1].Item2 : props.Space.LengthAccrossLines;
+                    var rectangles = spaceGenerator.Fill(props.Space).SelectMany(l => l).ToList();
 
-            //        rectangleTypes.Add(new Tuple<List<FSRectangle>, FamilyType>(rectangles.ToList(), props.NormalPlates));
-            //    }
+                    rectangleTypes.Add(new Tuple<List<FS_Rectangle>, FamilyType>(rectangles.ToList(), props.NormalPlates));
+                }
 
-            //    i++;
-            //}
+                i++;
+            }
 
-            //var instanceProps = ByPointInstanceProperties.CreateList(
-            //    rectangleTypes.Select(l => l.Item1.Select(r => r.Length)).SelectMany(r1 => r1).ToList(),
-            //    rectangleTypes.Select(l => l.Item1.Select(r => r.Width)).SelectMany(r1 => r1).ToList(),
-            //    rectangleTypes.Select(l => l.Item2).ToList(),
-            //    rectangleTypes.Select(l => l.Item1.Select(r => r.CenterPosition)).SelectMany(r1 => r1).ToList(),
-            //    props.PlateRotation
-            //    );
+            var instanceProps = ByPointInstanceProperties.CreateList(
+                rectangleTypes.Select(l => l.Item1.Select(r => r.Length)).SelectMany(r1 => r1).ToList(),
+                rectangleTypes.Select(l => l.Item1.Select(r => r.Width)).SelectMany(r1 => r1).ToList(),
+                rectangleTypes.Select(l => l.Item2).ToList(),
+                rectangleTypes.Select(l => l.Item1.Select(r => r.CenterPosition)).SelectMany(r1 => r1).ToList(),
+                props.PlateRotation
+                );
 
-            //return ByPointInstanceProperties.AsDictionary(instanceProps);
-
-            return null;
+            return ByPointInstanceProperties.AsDictionary(instanceProps);
         }
     }
 }

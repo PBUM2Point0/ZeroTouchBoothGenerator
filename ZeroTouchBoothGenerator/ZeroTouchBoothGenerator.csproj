@@ -61,6 +61,7 @@
     <Compile Include="BoothGen\RoofProperties.cs" />
     <Compile Include="DynamoUtils\ByLineInstanceProperties.cs" />
     <Compile Include="DynamoUtils\ByPointInstanceProperties.cs" />
+    <Compile Include="DynamoUtils\FamilyHelper.cs" />
     <Compile Include="FillingSpace\FS_Bins.cs" />
     <Compile Include="FillingSpace\FS_Rectangle.cs" />
     <Compile Include="FillingSpace\FS_Vector3.cs" />
@@ -82,4 +83,12 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>cd ..\..
+call prebuild.bat</PostBuildEvent>
+  </PropertyGroup>
 </Project>

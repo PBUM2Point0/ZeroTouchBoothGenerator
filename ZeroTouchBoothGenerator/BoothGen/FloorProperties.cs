@@ -8,26 +8,37 @@ using System.Text;
 using System.Threading.Tasks;
 using ZeroTouchBoothGenerator.FillingSpace.Space;
 
-namespace ZeroTouchBoothGenerator.BoothGen
+namespace BoothGenerator
 {
     public class FloorProperties
     {
         [IsVisibleInDynamoLibrary(false)]
         public ZeissBoothData BoothData { get; set; }
 
-        internal FloorProperties(ZeissBoothData boothData)
+        [IsVisibleInDynamoLibrary(false)]
+        public Level Level { get; set; }
+
+        internal FloorProperties(
+            ZeissBoothData boothData,
+            Level level)
         {
             BoothData = boothData;
+            Level = level;
         }
 
         /// <summary>
         /// Generates a new FloorProperties object
         /// </summary>
         /// <param name="data">ZeissBoothData</param>
+        /// <param name="level">Level on which the floor is created</param>
         /// <returns></returns>
-        public static FloorProperties ByData(ZeissBoothData data)
+        public static FloorProperties ByData(
+            ZeissBoothData data,
+            Level level)
         {
-            return new FloorProperties(data);
+            return new FloorProperties(
+                data,
+                level);
         }
     }
 
@@ -128,6 +139,16 @@ namespace ZeroTouchBoothGenerator.BoothGen
                 FlakeboardWidth = width,
                 FlakeboardLength = flakeboardLength
             };
+        }
+
+        public override string ToString()
+        {
+            return
+                "Accross distance: " + DesiredAccrossFlakeboardDistance + "\t" +
+                "Distance to bounds: " + FlakeboardDistanceToBounds + "\t" +
+                "Distance along: " + FlakeboardDistanceAlong + "\t" +
+                "Board width: " + FlakeboardWidth + "\t" +
+                "Board Length: " + FlakeboardLength;
         }
     }
 

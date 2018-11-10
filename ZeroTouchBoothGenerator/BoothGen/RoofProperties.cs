@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ZeroTouchBoothGenerator.BoothGen
+namespace BoothGenerator
 {
     public class RoofProperties
     {

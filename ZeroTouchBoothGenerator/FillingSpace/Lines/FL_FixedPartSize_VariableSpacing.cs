@@ -21,11 +21,10 @@ namespace ZeroTouchBoothGenerator.FillingSpace.Lines
 
         public IEnumerable<double> FillLine(FL_Line line)
         {
-            int numberOfParts = (int)(line.Length / (PartWidth + DesiredSpace) + 1);
+            int numberOfParts = (int)Math.Round((line.Length + DesiredSpace) / (PartWidth + DesiredSpace));
             double lengthWithoutParts = line.Length - (numberOfParts * PartWidth);
             double spaceWidth = lengthWithoutParts / (numberOfParts - 1);
-
-
+            
             bool spacePart = StartsWithSpace;
             for (int i = 0; i < numberOfParts + numberOfParts - 1; i++)
             {

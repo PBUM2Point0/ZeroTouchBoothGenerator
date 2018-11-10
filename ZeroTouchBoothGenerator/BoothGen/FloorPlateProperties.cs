@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ZeroTouchBoothGenerator.FillingSpace.Space;
 
-namespace ZeroTouchBoothGenerator.BoothGen
+namespace BoothGenerator
 {
     public class FloorPlateProperties
     {

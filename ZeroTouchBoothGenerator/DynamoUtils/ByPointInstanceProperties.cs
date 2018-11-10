@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ZeroTouchBoothGenerator.FillingSpace;
 
-namespace ZeroTouchBoothGenerator.DynamoUtils
+namespace DynamoUtils
 {
     public class ByPointInstanceProperties
     {
